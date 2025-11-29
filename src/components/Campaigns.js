@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import CardanoLoader from './CardanoLoader';
 import { 
@@ -27,82 +27,62 @@ import {
 } from 'lucide-react';
 import api from '../services/api';
 
-const campaignsData = [
-  {
-    id: 1,
-    name: 'Q4 Enterprise Outreach',
-    type: 'Multi-channel',
-    status: 'active',
-    prospects: 1250,
-    contacted: 890,
-    responses: 234,
-    meetings: 45,
-    channels: ['email', 'linkedin', 'phone'],
-    startDate: 'Oct 15, 2024',
-  },
-  {
-    id: 2,
-    name: 'SaaS Decision Makers',
-    type: 'Email Sequence',
-    status: 'active',
-    prospects: 2500,
-    contacted: 1820,
-    responses: 456,
-    meetings: 78,
-    channels: ['email'],
-    startDate: 'Nov 1, 2024',
-  },
-  {
-    id: 3,
-    name: 'Healthcare Industry Push',
-    type: 'LinkedIn Outreach',
-    status: 'paused',
-    prospects: 800,
-    contacted: 420,
-    responses: 89,
-    meetings: 12,
-    channels: ['linkedin'],
-    startDate: 'Sep 20, 2024',
-  },
-  {
-    id: 4,
-    name: 'Startup Founders Series',
-    type: 'Cold Call Campaign',
-    status: 'active',
-    prospects: 350,
-    contacted: 280,
-    responses: 95,
-    meetings: 32,
-    channels: ['phone', 'email'],
-    startDate: 'Nov 10, 2024',
-  },
-  {
-    id: 5,
-    name: 'Retail Expansion 2025',
-    type: 'Multi-channel',
-    status: 'draft',
-    prospects: 1800,
-    contacted: 0,
-    responses: 0,
-    meetings: 0,
-    channels: ['email', 'linkedin', 'phone'],
-    startDate: 'Not started',
-  },
-  {
-    id: 6,
-    name: 'FinTech C-Suite',
-    type: 'Email Sequence',
-    status: 'active',
-    prospects: 450,
-    contacted: 380,
-    responses: 112,
-    meetings: 28,
-    channels: ['email', 'linkedin'],
-    startDate: 'Oct 28, 2024',
-  },
-];
+// Helper function to map API campaign to component format
+const mapCampaignFromAPI = (apiCampaign) => {
+  const today = new Date();
+  const startDate = new Date(apiCampaign.start_date);
+  const endDate = new Date(apiCampaign.end_date);
+  
+  // Determine status based on dates
+  let status = 'active';
+  if (today < startDate) {
+    status = 'draft';
+  } else if (today > endDate) {
+    status = 'paused'; // Completed campaigns shown as paused
+  }
+  
+  // Map channel to array format
+  const channelMap = {
+    'Email': 'email',
+    'Social Media': 'linkedin',
+    'Paid Ads': 'paid-ads'
+  };
+  const channels = [channelMap[apiCampaign.channel] || 'email'];
+  
+  // Format start date
+  const formattedDate = startDate.toLocaleDateString('en-US', { 
+    month: 'short', 
+    day: 'numeric', 
+    year: 'numeric' 
+  });
+  
+  return {
+    id: apiCampaign.campaign_id,
+    name: apiCampaign.campaign_name,
+    type: apiCampaign.channel,
+    status: status,
+    prospects: apiCampaign.impressions || 0,
+    contacted: apiCampaign.clicks || 0,
+    responses: apiCampaign.conversions || 0,
+    meetings: apiCampaign.leads || 0,
+    channels: channels,
+    startDate: formattedDate,
+    // Additional API data
+    spend: apiCampaign.spend,
+    revenue: apiCampaign.revenue,
+    emailSignups: apiCampaign.email_signups,
+    endDate: endDate.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    }),
+  };
+};
 
 const Campaigns = () => {
+  const [campaigns, setCampaigns] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showEnrichModal, setShowEnrichModal] = useState(false);
@@ -110,8 +90,49 @@ const Campaigns = () => {
   const [enrichLoading, setEnrichLoading] = useState(false);
   const [enrichResult, setEnrichResult] = useState(null);
   const [enrichError, setEnrichError] = useState(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    campaign_name: '',
+    channel: 'Email',
+    start_date: '',
+    end_date: '',
+    spend: 0,
+    revenue: 0,
+    impressions: 0,
+    clicks: 0,
+    conversions: 0,
+    leads: 0,
+    email_signups: 0
+  });
+  const [createLoading, setCreateLoading] = useState(false);
+  const [createError, setCreateError] = useState(null);
 
-  const filteredCampaigns = campaignsData.filter(campaign => {
+  // Fetch campaigns function
+  const fetchCampaigns = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await api.getCampaigns();
+      if (response.success && response.campaigns) {
+        const mappedCampaigns = response.campaigns.map(mapCampaignFromAPI);
+        setCampaigns(mappedCampaigns);
+      } else {
+        setError('Failed to fetch campaigns');
+      }
+    } catch (err) {
+      console.error('Error fetching campaigns:', err);
+      setError(err.message || 'Failed to fetch campaigns');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch campaigns on mount
+  useEffect(() => {
+    fetchCampaigns();
+  }, []);
+
+  const filteredCampaigns = campaigns.filter(campaign => {
     const matchesSearch = campaign.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || campaign.status === statusFilter;
     return matchesSearch && matchesStatus;
@@ -122,7 +143,8 @@ const Campaigns = () => {
       case 'email': return <Mail size={14} />;
       case 'linkedin': return <Linkedin size={14} />;
       case 'phone': return <Phone size={14} />;
-      default: return null;
+      case 'paid-ads': return <Globe size={14} />;
+      default: return <Mail size={14} />;
     }
   };
 
@@ -171,6 +193,89 @@ const Campaigns = () => {
     e.stopPropagation();
   };
 
+  // Handle create campaign
+  const handleCreateCampaign = async () => {
+    if (!createForm.campaign_name || !createForm.start_date || !createForm.end_date) {
+      setCreateError('Campaign name, start date, and end date are required');
+      return;
+    }
+
+    setCreateLoading(true);
+    setCreateError(null);
+
+    try {
+      const campaignData = {
+        campaign_name: createForm.campaign_name,
+        channel: createForm.channel,
+        start_date: createForm.start_date,
+        end_date: createForm.end_date,
+        spend: parseFloat(createForm.spend) || 0,
+        revenue: parseFloat(createForm.revenue) || 0,
+        impressions: parseInt(createForm.impressions) || 0,
+        clicks: parseInt(createForm.clicks) || 0,
+        conversions: parseInt(createForm.conversions) || 0,
+        leads: parseInt(createForm.leads) || 0,
+        email_signups: parseInt(createForm.email_signups) || 0
+      };
+
+      const response = await api.createCampaign(campaignData);
+      
+      if (response.success) {
+        // Reset form and close modal
+        setCreateForm({
+          campaign_name: '',
+          channel: 'Email',
+          start_date: '',
+          end_date: '',
+          spend: 0,
+          revenue: 0,
+          impressions: 0,
+          clicks: 0,
+          conversions: 0,
+          leads: 0,
+          email_signups: 0
+        });
+        setShowCreateModal(false);
+        document.body.style.overflow = 'auto';
+        
+        // Refresh campaigns list
+        await fetchCampaigns();
+      } else {
+        setCreateError('Failed to create campaign');
+      }
+    } catch (error) {
+      console.error('Error creating campaign:', error);
+      setCreateError(error.message || 'Failed to create campaign');
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
+  // Handle create modal open/close
+  const openCreateModal = () => {
+    setShowCreateModal(true);
+    document.body.style.overflow = 'hidden';
+  };
+
+  const closeCreateModal = () => {
+    setShowCreateModal(false);
+    document.body.style.overflow = 'auto';
+    setCreateForm({
+      campaign_name: '',
+      channel: 'Email',
+      start_date: '',
+      end_date: '',
+      spend: 0,
+      revenue: 0,
+      impressions: 0,
+      clicks: 0,
+      conversions: 0,
+      leads: 0,
+      email_signups: 0
+    });
+    setCreateError(null);
+  };
+
   return (
     <div className="fade-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
@@ -183,7 +288,7 @@ const Campaigns = () => {
             <UserPlus size={18} />
             Enrich Lead
           </button>
-          <button className="btn btn-primary">
+          <button className="btn btn-primary" onClick={openCreateModal}>
             <Plus size={18} />
             New Campaign
           </button>
@@ -465,6 +570,372 @@ const Campaigns = () => {
         document.body
       )}
 
+      {/* Create Campaign Modal - Portal */}
+      {showCreateModal && ReactDOM.createPortal(
+        <>
+          {/* Backdrop */}
+          <div 
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(0, 0, 0, 0.8)',
+              backdropFilter: 'blur(8px)',
+              zIndex: 9998
+            }}
+            onClick={closeCreateModal}
+          />
+          {/* Modal */}
+          <div 
+            style={{
+              position: 'fixed',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              background: '#12121a',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '24px',
+              width: 'calc(100% - 4rem)',
+              maxWidth: '600px',
+              maxHeight: '85vh',
+              overflow: 'auto',
+              zIndex: 9999,
+            }}
+            onClick={(e) => e.stopPropagation()}
+            onWheel={handleModalScroll}
+          >
+            {/* Modal Header */}
+            <div style={{ 
+              padding: '1.5rem 2rem', 
+              borderBottom: '1px solid rgba(255,255,255,0.1)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              position: 'sticky',
+              top: 0,
+              background: '#12121a',
+              zIndex: 10
+            }}>
+              <div>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Plus size={24} style={{ color: '#6366f1' }} />
+                  Create New Campaign
+                </h2>
+                <p style={{ color: '#64748b', fontSize: '0.875rem' }}>
+                  Add a new marketing campaign
+                </p>
+              </div>
+              <button 
+                onClick={closeCreateModal}
+                style={{ 
+                  background: 'rgba(255,255,255,0.05)', 
+                  border: 'none', 
+                  borderRadius: '10px', 
+                  padding: '0.5rem',
+                  cursor: 'pointer',
+                  color: '#94a3b8'
+                }}
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div style={{ padding: '2rem' }}>
+              {createError && (
+                <div style={{ 
+                  padding: '1rem', 
+                  background: 'rgba(239, 68, 68, 0.1)', 
+                  borderRadius: '12px',
+                  color: '#ef4444',
+                  fontSize: '0.875rem',
+                  marginBottom: '1.5rem'
+                }}>
+                  ⚠️ {createError}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                {/* Campaign Name */}
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: '#94a3b8', fontWeight: '500' }}>
+                    Campaign Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={createForm.campaign_name}
+                    onChange={(e) => setCreateForm({ ...createForm, campaign_name: e.target.value })}
+                    placeholder="e.g., Summer Sale 2025"
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem 1rem',
+                      background: 'rgba(255,255,255,0.05)',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      borderRadius: '12px',
+                      color: '#f8fafc',
+                      fontSize: '0.875rem'
+                    }}
+                  />
+                </div>
+
+                {/* Channel */}
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: '#94a3b8', fontWeight: '500' }}>
+                    Channel *
+                  </label>
+                  <select
+                    value={createForm.channel}
+                    onChange={(e) => setCreateForm({ ...createForm, channel: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem 1rem',
+                      background: 'rgba(255,255,255,0.05)',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      borderRadius: '12px',
+                      color: '#f8fafc',
+                      fontSize: '0.875rem',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <option value="Email">Email</option>
+                    <option value="Social Media">Social Media</option>
+                    <option value="Paid Ads">Paid Ads</option>
+                  </select>
+                </div>
+
+                {/* Date Range */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: '#94a3b8', fontWeight: '500' }}>
+                      Start Date *
+                    </label>
+                    <input
+                      type="date"
+                      value={createForm.start_date}
+                      onChange={(e) => setCreateForm({ ...createForm, start_date: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem 1rem',
+                        background: 'rgba(255,255,255,0.05)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: '12px',
+                        color: '#f8fafc',
+                        fontSize: '0.875rem'
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: '#94a3b8', fontWeight: '500' }}>
+                      End Date *
+                    </label>
+                    <input
+                      type="date"
+                      value={createForm.end_date}
+                      onChange={(e) => setCreateForm({ ...createForm, end_date: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem 1rem',
+                        background: 'rgba(255,255,255,0.05)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: '12px',
+                        color: '#f8fafc',
+                        fontSize: '0.875rem'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Metrics Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: '#94a3b8', fontWeight: '500' }}>
+                      Spend ($)
+                    </label>
+                    <input
+                      type="number"
+                      value={createForm.spend}
+                      onChange={(e) => setCreateForm({ ...createForm, spend: e.target.value })}
+                      placeholder="0"
+                      min="0"
+                      step="0.01"
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem 1rem',
+                        background: 'rgba(255,255,255,0.05)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: '12px',
+                        color: '#f8fafc',
+                        fontSize: '0.875rem'
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: '#94a3b8', fontWeight: '500' }}>
+                      Revenue ($)
+                    </label>
+                    <input
+                      type="number"
+                      value={createForm.revenue}
+                      onChange={(e) => setCreateForm({ ...createForm, revenue: e.target.value })}
+                      placeholder="0"
+                      min="0"
+                      step="0.01"
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem 1rem',
+                        background: 'rgba(255,255,255,0.05)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: '12px',
+                        color: '#f8fafc',
+                        fontSize: '0.875rem'
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: '#94a3b8', fontWeight: '500' }}>
+                      Impressions
+                    </label>
+                    <input
+                      type="number"
+                      value={createForm.impressions}
+                      onChange={(e) => setCreateForm({ ...createForm, impressions: e.target.value })}
+                      placeholder="0"
+                      min="0"
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem 1rem',
+                        background: 'rgba(255,255,255,0.05)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: '12px',
+                        color: '#f8fafc',
+                        fontSize: '0.875rem'
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: '#94a3b8', fontWeight: '500' }}>
+                      Clicks
+                    </label>
+                    <input
+                      type="number"
+                      value={createForm.clicks}
+                      onChange={(e) => setCreateForm({ ...createForm, clicks: e.target.value })}
+                      placeholder="0"
+                      min="0"
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem 1rem',
+                        background: 'rgba(255,255,255,0.05)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: '12px',
+                        color: '#f8fafc',
+                        fontSize: '0.875rem'
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: '#94a3b8', fontWeight: '500' }}>
+                      Conversions
+                    </label>
+                    <input
+                      type="number"
+                      value={createForm.conversions}
+                      onChange={(e) => setCreateForm({ ...createForm, conversions: e.target.value })}
+                      placeholder="0"
+                      min="0"
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem 1rem',
+                        background: 'rgba(255,255,255,0.05)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: '12px',
+                        color: '#f8fafc',
+                        fontSize: '0.875rem'
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: '#94a3b8', fontWeight: '500' }}>
+                      Leads
+                    </label>
+                    <input
+                      type="number"
+                      value={createForm.leads}
+                      onChange={(e) => setCreateForm({ ...createForm, leads: e.target.value })}
+                      placeholder="0"
+                      min="0"
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem 1rem',
+                        background: 'rgba(255,255,255,0.05)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: '12px',
+                        color: '#f8fafc',
+                        fontSize: '0.875rem'
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: '#94a3b8', fontWeight: '500' }}>
+                      Email Signups
+                    </label>
+                    <input
+                      type="number"
+                      value={createForm.email_signups}
+                      onChange={(e) => setCreateForm({ ...createForm, email_signups: e.target.value })}
+                      placeholder="0"
+                      min="0"
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem 1rem',
+                        background: 'rgba(255,255,255,0.05)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: '12px',
+                        color: '#f8fafc',
+                        fontSize: '0.875rem'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                  <button 
+                    className="btn btn-secondary" 
+                    onClick={closeCreateModal}
+                    style={{ flex: 1, justifyContent: 'center' }}
+                    disabled={createLoading}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    className="btn btn-primary" 
+                    onClick={handleCreateCampaign}
+                    disabled={createLoading}
+                    style={{ flex: 1, justifyContent: 'center' }}
+                  >
+                    {createLoading ? (
+                      <>
+                        <CardanoLoader size={18} />
+                        Creating...
+                      </>
+                    ) : (
+                      <>
+                        <Plus size={18} />
+                        Create Campaign
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>,
+        document.body
+      )}
+
       {/* Filters */}
       <div className="glass-card" style={{ marginBottom: '1.5rem' }}>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -504,7 +975,9 @@ const Campaigns = () => {
               <Target size={20} />
             </div>
             <div>
-              <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#f8fafc' }}>6</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#f8fafc' }}>
+                {loading ? '...' : campaigns.length}
+              </div>
               <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Total Campaigns</div>
             </div>
           </div>
@@ -515,7 +988,9 @@ const Campaigns = () => {
               <Play size={20} />
             </div>
             <div>
-              <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#f8fafc' }}>4</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#f8fafc' }}>
+                {loading ? '...' : campaigns.filter(c => c.status === 'active').length}
+              </div>
               <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Active</div>
             </div>
           </div>
@@ -526,7 +1001,9 @@ const Campaigns = () => {
               <Users size={20} />
             </div>
             <div>
-              <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#f8fafc' }}>7,150</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#f8fafc' }}>
+                {loading ? '...' : campaigns.reduce((sum, c) => sum + (c.prospects || 0), 0).toLocaleString()}
+              </div>
               <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Total Prospects</div>
             </div>
           </div>
@@ -537,7 +1014,9 @@ const Campaigns = () => {
               <CheckCircle size={20} />
             </div>
             <div>
-              <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#f8fafc' }}>195</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#f8fafc' }}>
+                {loading ? '...' : campaigns.reduce((sum, c) => sum + (c.meetings || 0), 0).toLocaleString()}
+              </div>
               <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Meetings Booked</div>
             </div>
           </div>
@@ -546,7 +1025,38 @@ const Campaigns = () => {
 
       {/* Campaigns Grid */}
       <div className="campaigns-grid">
-        {filteredCampaigns.map((campaign) => (
+        {loading ? (
+          <div style={{ 
+            gridColumn: '1 / -1', 
+            padding: '3rem', 
+            textAlign: 'center', 
+            color: '#64748b' 
+          }}>
+            <CardanoLoader size={48} style={{ marginBottom: '1rem', display: 'block', margin: '0 auto 1rem' }} />
+            <div>Loading campaigns...</div>
+          </div>
+        ) : error ? (
+          <div style={{ 
+            gridColumn: '1 / -1', 
+            padding: '3rem', 
+            textAlign: 'center', 
+            color: '#ef4444' 
+          }}>
+            <AlertCircle size={32} style={{ marginBottom: '1rem', display: 'block', margin: '0 auto 1rem', opacity: 0.5 }} />
+            <div>{error}</div>
+          </div>
+        ) : filteredCampaigns.length === 0 ? (
+          <div style={{ 
+            gridColumn: '1 / -1', 
+            padding: '3rem', 
+            textAlign: 'center', 
+            color: '#64748b' 
+          }}>
+            <Target size={32} style={{ marginBottom: '1rem', display: 'block', margin: '0 auto 1rem', opacity: 0.5 }} />
+            <div>No campaigns found</div>
+          </div>
+        ) : (
+          filteredCampaigns.map((campaign) => (
           <div key={campaign.id} className="campaign-card">
             <div className="campaign-header">
               <div>
@@ -635,7 +1145,8 @@ const Campaigns = () => {
               </button>
             </div>
           </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );
