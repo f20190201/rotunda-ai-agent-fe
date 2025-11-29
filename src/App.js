@@ -2,13 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   LayoutDashboard, 
   Megaphone, 
-  Bot, 
-  FileText,
   Bell,
   Sparkles,
-  LogOut,
-  Settings,
-  HelpCircle,
   Mail,
   Reply,
   AlertCircle,
@@ -19,8 +14,6 @@ import {
 } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import Campaigns from './components/Campaigns';
-import AgentSettings from './components/AgentSettings';
-import LogsBilling from './components/LogsBilling';
 import EmailGenerator from './components/EmailGenerator';
 import RespondToEmails from './components/RespondToEmails';
 import Chatbot from './components/Chatbot';
@@ -33,7 +26,7 @@ const USE_MOCK_API = true;
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [alerts, setAlerts] = useState([]);
+  const [_alerts, setAlerts] = useState([]);
   const [activeAlerts, setActiveAlerts] = useState([]);
   const [alertCount, setAlertCount] = useState(0);
   const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
@@ -44,9 +37,7 @@ function App() {
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'campaigns', label: 'Campaigns', icon: Megaphone },
     { id: 'emails', label: 'Send AI Marketing Emails', icon: Mail },
-    { id: 'respond', label: 'Respond to Emails', icon: Reply },
-    { id: 'settings', label: 'Agent Settings', icon: Bot },
-    { id: 'logs', label: 'Logs & Billing', icon: FileText },
+    { id: 'respond', label: 'Respond to Emails', icon: Reply }
   ];
 
   // Fetch alerts from API
@@ -167,10 +158,6 @@ function App() {
         return <EmailGenerator />;
       case 'respond':
         return <RespondToEmails />;
-      case 'settings':
-        return <AgentSettings />;
-      case 'logs':
-        return <LogsBilling />;
       default:
         return <Dashboard />;
     }
