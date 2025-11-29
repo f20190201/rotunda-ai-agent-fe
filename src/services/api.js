@@ -3,7 +3,7 @@
 // Base URL for all API calls
 // In development, requests are proxied through React dev server (see package.json "proxy")
 // In production, set REACT_APP_API_URL environment variable
-const BASE_URL = process.env.REACT_APP_API_URL || '';
+const BASE_URL = process.env.REACT_APP_API_URL || (process.env.NODE_ENV === 'production' ? 'http://64.227.128.101:8000' : '');
 
 // Default agent ID (can be made dynamic based on user session)
 const DEFAULT_AGENT_ID = 'rotunda-frontend-agent';
@@ -14,9 +14,6 @@ const DEFAULT_AGENT_ID = 'rotunda-frontend-agent';
 async function apiCall(endpoint, options = {}) {
   try {
     console.log(`API Call [${endpoint}]:`, options.body ? JSON.parse(options.body) : 'GET');
-    console.log(`BASE_URL: ${BASE_URL}`);
-    console.log('FULL URL:' + `${BASE_URL}${endpoint}`);
-    
     const response = await fetch(`${BASE_URL}${endpoint}`, {
       headers: {
         'Content-Type': 'application/json',
