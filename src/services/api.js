@@ -14,6 +14,8 @@ const DEFAULT_AGENT_ID = 'rotunda-frontend-agent';
 async function apiCall(endpoint, options = {}) {
   try {
     console.log(`API Call [${endpoint}]:`, options.body ? JSON.parse(options.body) : 'GET');
+    console.log(`BASE_URL: ${BASE_URL}`);
+    console.log('FULL URL:' + `${BASE_URL}${endpoint}`);
     
     const response = await fetch(`${BASE_URL}${endpoint}`, {
       headers: {
