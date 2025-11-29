@@ -255,6 +255,17 @@ export async function retrieveEmails(options = {}) {
   });
 }
 
+/**
+ * Get Alerts - Fetch system alerts and notifications
+ * Returns alerts for: complaint emails, conversion rate, revenue delta
+ * @param {string} agentId - Agent ID (defaults to DEFAULT_AGENT_ID)
+ */
+export async function getAlerts(agentId = DEFAULT_AGENT_ID) {
+  return apiCall(`/alerts?agentId=${agentId}`, {
+    method: 'GET',
+  });
+}
+
 // Export all functions
 const api = {
   healthCheck,
@@ -268,6 +279,7 @@ const api = {
   generateHtmlEmail,
   resolveEmailComplaint,
   retrieveEmails,
+  getAlerts,
   BASE_URL,
 };
 
