@@ -99,12 +99,12 @@ const LiquidGlassTooltip = ({ active, payload, label }) => {
         </div>
         {payload.map((entry, index) => {
           const colorMap = {
-            'Revenue ($)': '#6366f1',
-            'Leads': '#8b5cf6',
-            'Emails': '#6366f1',
-            'LinkedIn': '#8b5cf6',
-            'Calls': '#a855f7',
-            'value': entry.color || '#6366f1'
+            'Revenue ($)': '#3b82f6',
+            'Leads': '#06b6d4',
+            'Emails': '#3b82f6',
+            'LinkedIn': '#06b6d4',
+            'Calls': '#f59e0b',
+            'value': entry.color || '#3b82f6'
           };
           const color = colorMap[entry.name] || entry.color || '#6366f1';
           
@@ -167,10 +167,10 @@ const revenueData = [
 ];
 
 const conversionData = [
-  { name: 'Email', value: 45, color: '#6366f1' },
-  { name: 'LinkedIn', value: 30, color: '#8b5cf6' },
-  { name: 'Cold Call', value: 15, color: '#a855f7' },
-  { name: 'Referral', value: 10, color: '#06b6d4' },
+  { name: 'Email', value: 45, color: '#3b82f6' },
+  { name: 'LinkedIn', value: 30, color: '#06b6d4' },
+  { name: 'Cold Call', value: 15, color: '#f59e0b' },
+  { name: 'Referral', value: 10, color: '#10b981' },
 ];
 
 const weeklyOutreach = [
@@ -1055,9 +1055,9 @@ const Dashboard = () => {
                   wrapperStyle={{ outline: 'none' }}
                   cursor={{ fill: 'transparent' }}
                 />
-                <Bar dataKey="emails" fill="#6366f1" radius={[4, 4, 0, 0]} name="Emails" />
-                <Bar dataKey="linkedin" fill="#8b5cf6" radius={[4, 4, 0, 0]} name="LinkedIn" />
-                <Bar dataKey="calls" fill="#a855f7" radius={[4, 4, 0, 0]} name="Calls" />
+                <Bar dataKey="emails" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Emails" />
+                <Bar dataKey="linkedin" fill="#06b6d4" radius={[4, 4, 0, 0]} name="LinkedIn" />
+                <Bar dataKey="calls" fill="#f59e0b" radius={[4, 4, 0, 0]} name="Calls" />
               </BarChart>
             </ResponsiveContainer>
           </div>
