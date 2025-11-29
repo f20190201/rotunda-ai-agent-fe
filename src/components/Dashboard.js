@@ -126,7 +126,9 @@ const LiquidGlassTooltip = ({ active, payload, label }) => {
                   width: '10px',
                   height: '10px',
                   borderRadius: '50%',
-                  background: `linear-gradient(135deg, ${color} 0%, ${color}dd 100%)`,
+                  // background: `linear-gradient(135deg, ${color} 0%, ${color}dd 100%)`,
+                  backgroundColor: color,
+                  color, // Set color property so currentColor works in dotPulse animation
                   boxShadow: `0 0 12px ${color}80, 0 0 6px ${color}40`
                 }} />
                 <span style={{
