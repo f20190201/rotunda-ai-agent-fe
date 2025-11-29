@@ -700,8 +700,10 @@ const RespondToEmails = () => {
                     lineHeight: '1.8',
                     whiteSpace: 'pre-wrap',
                     fontFamily: 'Outfit, sans-serif'
-                  }}>
-                    {aiResponse.response}
+                  }}
+                  dangerouslySetInnerHTML={{ __html: aiResponse.response }}
+                  >
+                    {/* {aiResponse.response} */}
                   </div>
                 </div>
 
