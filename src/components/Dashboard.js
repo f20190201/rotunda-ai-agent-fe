@@ -36,6 +36,7 @@ import {
   Cell
 } from 'recharts';
 import api from '../services/api';
+import { chartColors, getColorFromEntry } from '../constants/colors';
 
 // Custom Liquid Glass Tooltip Component
 const LiquidGlassTooltip = ({ active, payload, label }) => {
@@ -46,15 +47,15 @@ const LiquidGlassTooltip = ({ active, payload, label }) => {
   
   return (
     <div className="liquid-glass-tooltip" style={{
-      background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.6) 0%, rgba(139, 92, 246, 0.6) 50%, rgba(168, 85, 247, 0.6) 100%)',
+      background: 'linear-gradient(135deg, rgba(0, 232, 199, 0.6) 0%, rgba(114, 245, 255, 0.6) 50%, rgba(106, 92, 255, 0.6) 100%)',
       backdropFilter: 'blur(20px) saturate(180%)',
       WebkitBackdropFilter: 'blur(20px) saturate(180%)',
       border: '1px solid rgba(255, 255, 255, 0.25)',
       borderRadius: '20px',
       padding: '1rem 1.25rem',
       boxShadow: `
-        0 8px 32px rgba(99, 102, 241, 0.3),
-        0 4px 16px rgba(139, 92, 246, 0.25),
+        0 8px 32px rgba(0, 232, 199, 0.3),
+        0 4px 16px rgba(114, 245, 255, 0.25),
         inset 0 1px 0 rgba(255, 255, 255, 0.3)
       `,
       position: 'relative',
@@ -98,15 +99,8 @@ const LiquidGlassTooltip = ({ active, payload, label }) => {
           {label}
         </div>
         {payload.map((entry, index) => {
-          const colorMap = {
-            'Revenue ($)': '#3b82f6',
-            'Leads': '#06b6d4',
-            'Emails': '#3b82f6',
-            'LinkedIn': '#06b6d4',
-            'Calls': '#f59e0b',
-            'value': entry.color || '#3b82f6'
-          };
-          const color = colorMap[entry.name] || entry.color || '#6366f1';
+          // Use centralized color library
+          const color = getColorFromEntry(entry);
           
           return (
             <div key={index} style={{
@@ -169,10 +163,10 @@ const revenueData = [
 ];
 
 const conversionData = [
-  { name: 'Email', value: 45, color: '#3b82f6' },
-  { name: 'LinkedIn', value: 30, color: '#06b6d4' },
-  { name: 'Cold Call', value: 15, color: '#f59e0b' },
-  { name: 'Referral', value: 10, color: '#10b981' },
+  { name: 'Email', value: 45, color: chartColors.email },
+  { name: 'LinkedIn', value: 30, color: chartColors.linkedin },
+  { name: 'Cold Call', value: 15, color: chartColors.coldCall },
+  { name: 'Referral', value: 10, color: chartColors.referral },
 ];
 
 const weeklyOutreach = [
@@ -966,12 +960,12 @@ const Dashboard = () => {
               <AreaChart data={revenueData}>
                 <defs>
                   <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                    <stop offset="5%" stopColor={chartColors.revenue} stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor={chartColors.revenue} stopOpacity={0}/>
                   </linearGradient>
                   <linearGradient id="colorLeads" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+                    <stop offset="5%" stopColor={chartColors.leads} stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor={chartColors.leads} stopOpacity={0}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
@@ -981,7 +975,7 @@ const Dashboard = () => {
                 <Area
                   type="monotone"
                   dataKey="value"
-                  stroke="#6366f1"
+                  stroke={chartColors.revenue}
                   strokeWidth={2}
                   fillOpacity={1}
                   fill="url(#colorRevenue)"
@@ -990,7 +984,7 @@ const Dashboard = () => {
                 <Area
                   type="monotone"
                   dataKey="leads"
-                  stroke="#8b5cf6"
+                  stroke={chartColors.leads}
                   strokeWidth={2}
                   fillOpacity={1}
                   fill="url(#colorLeads)"
@@ -1057,9 +1051,9 @@ const Dashboard = () => {
                   wrapperStyle={{ outline: 'none' }}
                   cursor={{ fill: 'transparent' }}
                 />
-                <Bar dataKey="emails" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Emails" />
-                <Bar dataKey="linkedin" fill="#06b6d4" radius={[4, 4, 0, 0]} name="LinkedIn" />
-                <Bar dataKey="calls" fill="#f59e0b" radius={[4, 4, 0, 0]} name="Calls" />
+                <Bar dataKey="emails" fill={chartColors.emails} radius={[4, 4, 0, 0]} name="Emails" />
+                <Bar dataKey="linkedin" fill={chartColors.linkedin} radius={[4, 4, 0, 0]} name="LinkedIn" />
+                <Bar dataKey="calls" fill={chartColors.calls} radius={[4, 4, 0, 0]} name="Calls" />
               </BarChart>
             </ResponsiveContainer>
           </div>
