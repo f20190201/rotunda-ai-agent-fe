@@ -36,6 +36,7 @@ import {
   Cell
 } from 'recharts';
 import api from '../services/api';
+import { chartColors, getColorFromEntry } from '../constants/colors';
 
 // Custom Liquid Glass Tooltip Component
 const LiquidGlassTooltip = ({ active, payload, label }) => {
@@ -46,7 +47,7 @@ const LiquidGlassTooltip = ({ active, payload, label }) => {
   
   return (
     <div className="liquid-glass-tooltip" style={{
-      background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.6) 0%, rgba(139, 92, 246, 0.6) 50%, rgba(168, 85, 247, 0.6) 100%)',
+      background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.6) 0%, rgba(139, 92, 246, 0.6) 50%, rgba(6, 182, 212, 0.6) 100%)',
       backdropFilter: 'blur(20px) saturate(180%)',
       WebkitBackdropFilter: 'blur(20px) saturate(180%)',
       border: '1px solid rgba(255, 255, 255, 0.25)',
@@ -98,15 +99,8 @@ const LiquidGlassTooltip = ({ active, payload, label }) => {
           {label}
         </div>
         {payload.map((entry, index) => {
-          const colorMap = {
-            'Revenue ($)': '#6366f1',
-            'Leads': '#8b5cf6',
-            'Emails': '#6366f1',
-            'LinkedIn': '#8b5cf6',
-            'Calls': '#a855f7',
-            'value': entry.color || '#6366f1'
-          };
-          const color = colorMap[entry.name] || entry.color || '#6366f1';
+          // Use centralized color library
+          const color = getColorFromEntry(entry);
           
           return (
             <div key={index} style={{
@@ -126,7 +120,9 @@ const LiquidGlassTooltip = ({ active, payload, label }) => {
                   width: '10px',
                   height: '10px',
                   borderRadius: '50%',
-                  background: `linear-gradient(135deg, ${color} 0%, ${color}dd 100%)`,
+                  // background: `linear-gradient(135deg, ${color} 0%, ${color}dd 100%)`,
+                  backgroundColor: color,
+                  color, // Set color property so currentColor works in dotPulse animation
                   boxShadow: `0 0 12px ${color}80, 0 0 6px ${color}40`
                 }} />
                 <span style={{
@@ -167,10 +163,10 @@ const revenueData = [
 ];
 
 const conversionData = [
-  { name: 'Email', value: 45, color: '#6366f1' },
-  { name: 'LinkedIn', value: 30, color: '#8b5cf6' },
-  { name: 'Cold Call', value: 15, color: '#a855f7' },
-  { name: 'Referral', value: 10, color: '#06b6d4' },
+  { name: 'Email', value: 45, color: chartColors.email },
+  { name: 'LinkedIn', value: 30, color: chartColors.linkedin },
+  { name: 'Cold Call', value: 15, color: chartColors.coldCall },
+  { name: 'Referral', value: 10, color: chartColors.referral },
 ];
 
 const weeklyOutreach = [
@@ -964,12 +960,12 @@ const Dashboard = () => {
               <AreaChart data={revenueData}>
                 <defs>
                   <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                    <stop offset="5%" stopColor={chartColors.revenue} stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor={chartColors.revenue} stopOpacity={0}/>
                   </linearGradient>
                   <linearGradient id="colorLeads" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+                    <stop offset="5%" stopColor={chartColors.leads} stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor={chartColors.leads} stopOpacity={0}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
@@ -979,7 +975,7 @@ const Dashboard = () => {
                 <Area
                   type="monotone"
                   dataKey="value"
-                  stroke="#6366f1"
+                  stroke={chartColors.revenue}
                   strokeWidth={2}
                   fillOpacity={1}
                   fill="url(#colorRevenue)"
@@ -988,7 +984,7 @@ const Dashboard = () => {
                 <Area
                   type="monotone"
                   dataKey="leads"
-                  stroke="#8b5cf6"
+                  stroke={chartColors.leads}
                   strokeWidth={2}
                   fillOpacity={1}
                   fill="url(#colorLeads)"
@@ -1055,11 +1051,25 @@ const Dashboard = () => {
                   wrapperStyle={{ outline: 'none' }}
                   cursor={{ fill: 'transparent' }}
                 />
-                <Bar dataKey="emails" fill="#6366f1" radius={[4, 4, 0, 0]} name="Emails" />
-                <Bar dataKey="linkedin" fill="#8b5cf6" radius={[4, 4, 0, 0]} name="LinkedIn" />
-                <Bar dataKey="calls" fill="#a855f7" radius={[4, 4, 0, 0]} name="Calls" />
+                <Bar dataKey="emails" fill={chartColors.emails} radius={[4, 4, 0, 0]} name="Emails" />
+                <Bar dataKey="linkedin" fill={chartColors.linkedin} radius={[4, 4, 0, 0]} name="LinkedIn" />
+                <Bar dataKey="calls" fill={chartColors.calls} radius={[4, 4, 0, 0]} name="Calls" />
               </BarChart>
             </ResponsiveContainer>
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'center', marginTop: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: chartColors.emails }} />
+              <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Emails</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: chartColors.linkedin }} />
+              <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>LinkedIn</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: chartColors.calls }} />
+              <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Calls</span>
+            </div>
           </div>
         </div>
 
