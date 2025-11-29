@@ -49,6 +49,8 @@ export const colorMap = {
   
   // Pie chart mappings
   'Email': chartColors.email,
+  'Social Media': chartColors.linkedin,
+  'Paid Ads': chartColors.coldCall,
   'Cold Call': chartColors.coldCall,
   'Referral': chartColors.referral,
   
