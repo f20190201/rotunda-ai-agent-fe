@@ -11,7 +11,6 @@ import {
   Clock,
   Zap,
   Brain,
-  Loader2,
   Sparkles,
   BarChart3,
   DollarSign,
@@ -37,6 +36,7 @@ import {
 } from 'recharts';
 import api from '../services/api';
 import { chartColors, getColorFromEntry } from '../constants/colors';
+import CardanoLoader from './CardanoLoader';
 
 // Custom Liquid Glass Tooltip Component
 const LiquidGlassTooltip = ({ active, payload, label }) => {
@@ -376,7 +376,7 @@ const Dashboard = () => {
             >
               {forecastLoading ? (
                 <>
-                  <Loader2 size={16} className="spin" />
+                  <CardanoLoader size={16} />
                   Analyzing...
                 </>
               ) : (
@@ -539,7 +539,7 @@ const Dashboard = () => {
             >
               {analysisLoading ? (
                 <>
-                  <Loader2 size={16} className="spin" />
+                  <CardanoLoader size={16} />
                   Analyzing...
                 </>
               ) : (

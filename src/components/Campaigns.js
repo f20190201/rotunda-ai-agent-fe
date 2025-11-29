@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
+import CardanoLoader from './CardanoLoader';
 import { 
   Plus, 
   Search, 
@@ -18,7 +19,6 @@ import {
   CheckCircle,
   Sparkles,
   UserPlus,
-  Loader2,
   X,
   Building,
   Globe,
@@ -324,7 +324,7 @@ const Campaigns = () => {
                 >
                   {enrichLoading ? (
                     <>
-                      <Loader2 size={18} className="spin" />
+                      <CardanoLoader size={18} />
                       Enriching Lead...
                     </>
                   ) : (

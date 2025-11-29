@@ -9,7 +9,6 @@ import {
   MessageSquare,
   Hash,
   Bot,
-  Loader2,
   X,
   Copy,
   Check,
@@ -20,6 +19,7 @@ import {
 } from 'lucide-react';
 import api from '../services/api';
 import { mockRetrieveEmails } from '../mocks/emailMocks';
+import CardanoLoader from './CardanoLoader';
 
 // Flag to switch between mock and real API
 // Set to true to use mock data, false to use real API
@@ -362,7 +362,7 @@ const RespondToEmails = () => {
           >
             {loading ? (
               <>
-                <Loader2 size={18} className="spin" />
+                <CardanoLoader size={18} />
                 Loading...
               </>
             ) : (
@@ -511,7 +511,7 @@ const RespondToEmails = () => {
       <div className="glass-card">
         {loading ? (
           <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>
-            <Loader2 size={32} className="spin" style={{ marginBottom: '1rem', display: 'block', margin: '0 auto 1rem' }} />
+            <CardanoLoader size={32} style={{ marginBottom: '1rem', display: 'block', margin: '0 auto 1rem' }} />
             <div>Fetching emails...</div>
           </div>
         ) : filteredEmails.length === 0 ? (
@@ -685,7 +685,7 @@ const RespondToEmails = () => {
                   >
                     {loadingResponse ? (
                       <>
-                        <Loader2 size={18} className="spin" />
+                        <CardanoLoader size={18} />
                         Generating AI Response...
                       </>
                     ) : (

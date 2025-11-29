@@ -71,7 +71,7 @@ export async function chat(message, options = {}) {
     method: 'POST',
     body: JSON.stringify({
       message,
-      agentId,
+      agentId: 'chatagent',
       StripeEnabled: stripeEnabled,
       SlackEnabled: slackEnabled,
       CalEnabled: calEnabled,

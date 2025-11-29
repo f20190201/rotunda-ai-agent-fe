@@ -10,10 +10,10 @@ import {
   TrendingUp,
   Users,
   Mail,
-  Loader2,
   AlertCircle,
   RefreshCw
 } from 'lucide-react';
+import CardanoLoader from './CardanoLoader';
 import api from '../services/api';
 
 const quickPrompts = [
@@ -186,7 +186,7 @@ const Chatbot = () => {
     try {
       // Call the real API
       const response = await api.chat(currentInput, {
-        agentId: 'rotunda-frontend-agent'
+        agentId: 'chatagent'
       });
 
       const botResponse = {
@@ -249,7 +249,7 @@ const Chatbot = () => {
               <div className="chat-status">
                 {isConnected === null ? (
                   <>
-                    <Loader2 size={12} className="spin" />
+                    <CardanoLoader size={12} />
                     <span>Connecting...</span>
                   </>
                 ) : isConnected ? (
@@ -340,7 +340,7 @@ const Chatbot = () => {
               </div>
               <div className="message-content">
                 <div className="message-bubble typing">
-                  <Loader2 size={16} className="spin" />
+                  <CardanoLoader size={16} />
                   <span>Analyzing...</span>
                 </div>
               </div>
