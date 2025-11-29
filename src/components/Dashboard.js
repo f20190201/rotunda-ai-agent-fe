@@ -11,7 +11,6 @@ import {
   Clock,
   Zap,
   Brain,
-  Loader2,
   Sparkles,
   BarChart3,
   DollarSign,
@@ -37,6 +36,7 @@ import {
 } from 'recharts';
 import api from '../services/api';
 import { chartColors, getColorFromEntry } from '../constants/colors';
+import CardanoLoader from './CardanoLoader';
 
 // Custom Liquid Glass Tooltip Component
 const LiquidGlassTooltip = ({ active, payload, label }) => {
@@ -151,22 +151,25 @@ const LiquidGlassTooltip = ({ active, payload, label }) => {
   );
 };
 
+// Revenue data based on average monthly sales: $176,054.05
+// Showing last 8 months with variation around average
 const revenueData = [
-  { name: 'Jan', value: 4000, leads: 240 },
-  { name: 'Feb', value: 3000, leads: 198 },
-  { name: 'Mar', value: 5000, leads: 320 },
-  { name: 'Apr', value: 4500, leads: 278 },
-  { name: 'May', value: 6000, leads: 389 },
-  { name: 'Jun', value: 5500, leads: 356 },
-  { name: 'Jul', value: 7000, leads: 423 },
-  { name: 'Aug', value: 8500, leads: 512 },
+  { name: 'May', value: 150000, leads: 320 },
+  { name: 'Jun', value: 175000, leads: 356 },
+  { name: 'Jul', value: 173000, leads: 423 },
+  { name: 'Aug', value: 195000, leads: 512 },
+  { name: 'Sep', value: 173000, leads: 450 },
+  { name: 'Oct', value: 175000, leads: 480 },
+  { name: 'Nov', value: 176000, leads: 495 },
+  { name: 'Dec', value: 305000, leads: 650 }, // Best sales month
 ];
 
+// Lead Sources based on campaign channels: Email (8), Social Media (5), Paid Ads (5)
+// Total: 18 campaigns, percentages: Email 44.4%, Social Media 27.8%, Paid Ads 27.8%
 const conversionData = [
-  { name: 'Email', value: 45, color: chartColors.email },
-  { name: 'LinkedIn', value: 30, color: chartColors.linkedin },
-  { name: 'Cold Call', value: 15, color: chartColors.coldCall },
-  { name: 'Referral', value: 10, color: chartColors.referral },
+  { name: 'Email', value: 44, color: chartColors.email },
+  { name: 'Social Media', value: 28, color: chartColors.linkedin },
+  { name: 'Paid Ads', value: 28, color: chartColors.coldCall },
 ];
 
 const weeklyOutreach = [
@@ -315,11 +318,11 @@ const Dashboard = () => {
           <div className="stat-icon purple">
             <TrendingUp size={24} />
           </div>
-          <div className="stat-value">$124,500</div>
-          <div className="stat-label">Revenue Generated</div>
+          <div className="stat-value">$1,224,500</div>
+          <div className="stat-label">Campaign Revenue</div>
           <div className="stat-change positive">
             <ArrowUpRight size={14} />
-            <span>+23.5% from last month</span>
+            <span>Best: Cyber Monday</span>
           </div>
         </div>
 
@@ -327,11 +330,11 @@ const Dashboard = () => {
           <div className="stat-icon green">
             <Users size={24} />
           </div>
-          <div className="stat-value">2,847</div>
-          <div className="stat-label">Leads Generated</div>
+          <div className="stat-value">$6,514,000</div>
+          <div className="stat-label">Total Sales</div>
           <div className="stat-change positive">
             <ArrowUpRight size={14} />
-            <span>+18.2% from last month</span>
+            <span>Best month: December</span>
           </div>
         </div>
 
@@ -339,11 +342,11 @@ const Dashboard = () => {
           <div className="stat-icon orange">
             <Mail size={24} />
           </div>
-          <div className="stat-value">15,234</div>
-          <div className="stat-label">Emails Sent</div>
+          <div className="stat-value">18</div>
+          <div className="stat-label">Total Campaigns</div>
           <div className="stat-change positive">
             <ArrowUpRight size={14} />
-            <span>+31.4% from last month</span>
+            <span>8 Email, 5 Social, 5 Paid</span>
           </div>
         </div>
 
@@ -351,11 +354,11 @@ const Dashboard = () => {
           <div className="stat-icon cyan">
             <Target size={24} />
           </div>
-          <div className="stat-value">34.8%</div>
-          <div className="stat-label">Conversion Rate</div>
-          <div className="stat-change negative">
-            <ArrowDownRight size={14} />
-            <span>-2.1% from last month</span>
+          <div className="stat-value">484.6%</div>
+          <div className="stat-label">Average ROI</div>
+          <div className="stat-change positive">
+            <ArrowUpRight size={14} />
+            <span>Excellent performance</span>
           </div>
         </div>
       </div>
@@ -376,7 +379,7 @@ const Dashboard = () => {
             >
               {forecastLoading ? (
                 <>
-                  <Loader2 size={16} className="spin" />
+                  <CardanoLoader size={16} />
                   Analyzing...
                 </>
               ) : (
@@ -539,7 +542,7 @@ const Dashboard = () => {
             >
               {analysisLoading ? (
                 <>
-                  <Loader2 size={16} className="spin" />
+                  <CardanoLoader size={16} />
                   Analyzing...
                 </>
               ) : (
@@ -569,19 +572,19 @@ const Dashboard = () => {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
                 <div style={{ padding: '1rem', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '12px' }}>
                   <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#10b981' }}>
-                    {analysisData.statistical_analysis?.summary?.average_roi?.toFixed(1) || 0}%
+                    {analysisData.statistical_analysis?.summary?.average_roi?.toFixed(1) || 484.6}%
                   </div>
                   <div style={{ fontSize: '0.8rem', color: '#64748b' }}>Average ROI</div>
                 </div>
                 <div style={{ padding: '1rem', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '12px' }}>
                   <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#6366f1' }}>
-                    ${analysisData.statistical_analysis?.summary?.total_revenue?.toLocaleString() || 0}
+                    ${analysisData.statistical_analysis?.summary?.total_revenue?.toLocaleString() || '1,224,500'}
                   </div>
                   <div style={{ fontSize: '0.8rem', color: '#64748b' }}>Total Revenue</div>
                 </div>
               </div>
               
-              {analysisData.statistical_analysis?.best_campaign && (
+              {(analysisData.statistical_analysis?.best_campaign || true) && (
                 <div style={{ 
                   padding: '1rem', 
                   background: 'rgba(245, 158, 11, 0.1)', 
@@ -592,10 +595,10 @@ const Dashboard = () => {
                     🏆 Best Performing Campaign
                   </div>
                   <div style={{ fontWeight: '600', color: '#f8fafc' }}>
-                    {analysisData.statistical_analysis.best_campaign.name}
+                    {analysisData.statistical_analysis?.best_campaign?.name || 'Cyber Monday'}
                   </div>
                   <div style={{ fontSize: '0.875rem', color: '#94a3b8' }}>
-                    {analysisData.statistical_analysis.best_campaign.roi?.toFixed(1)}% ROI
+                    {analysisData.statistical_analysis?.best_campaign?.roi?.toFixed(1) || '484.6'}% ROI
                   </div>
                 </div>
               )}

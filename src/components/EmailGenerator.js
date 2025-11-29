@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
+import CardanoLoader from './CardanoLoader';
 import { 
   Mail, 
   Sparkles, 
   Send, 
   Copy, 
   Check,
-  Loader2,
   FileText,
   User,
   Building,
@@ -245,7 +245,7 @@ const EmailGenerator = () => {
               >
                 {loading ? (
                   <>
-                    <Loader2 size={18} className="spin" />
+                    <CardanoLoader size={18} />
                     Generating...
                   </>
                 ) : (

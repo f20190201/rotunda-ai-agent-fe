@@ -71,7 +71,7 @@ export async function chat(message, options = {}) {
     method: 'POST',
     body: JSON.stringify({
       message,
-      agentId,
+      agentId: 'chatagent',
       StripeEnabled: stripeEnabled,
       SlackEnabled: slackEnabled,
       CalEnabled: calEnabled,
@@ -266,6 +266,39 @@ export async function getAlerts(agentId = DEFAULT_AGENT_ID) {
   });
 }
 
+/**
+ * Get Campaigns - Fetch all campaigns
+ * @returns {Promise} - Campaigns response with count and campaigns array
+ */
+export async function getCampaigns() {
+  return apiCall('/campaigns', {
+    method: 'GET',
+  });
+}
+
+/**
+ * Create Campaign - Create a new campaign
+ * @param {Object} campaignData - Campaign data
+ * @param {string} campaignData.campaign_name - Campaign name
+ * @param {string} campaignData.channel - Channel (Email, Social Media, Paid Ads)
+ * @param {string} campaignData.start_date - Start date (YYYY-MM-DD)
+ * @param {string} campaignData.end_date - End date (YYYY-MM-DD)
+ * @param {number} campaignData.spend - Campaign spend
+ * @param {number} campaignData.revenue - Campaign revenue
+ * @param {number} campaignData.impressions - Impressions
+ * @param {number} campaignData.clicks - Clicks
+ * @param {number} campaignData.conversions - Conversions
+ * @param {number} campaignData.leads - Leads
+ * @param {number} campaignData.email_signups - Email signups
+ * @returns {Promise} - Created campaign response
+ */
+export async function createCampaign(campaignData) {
+  return apiCall('/campaigns', {
+    method: 'POST',
+    body: JSON.stringify(campaignData),
+  });
+}
+
 // Export all functions
 const api = {
   healthCheck,
@@ -280,6 +313,8 @@ const api = {
   resolveEmailComplaint,
   retrieveEmails,
   getAlerts,
+  getCampaigns,
+  createCampaign,
   BASE_URL,
 };
 
