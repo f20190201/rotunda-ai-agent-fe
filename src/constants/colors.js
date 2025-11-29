@@ -3,23 +3,24 @@
  * Ensures color uniformity across the application
  */
 
-// Chart Colors - High contrast colors for dark backgrounds
-// Palette: ["#00E8C7", "#FF2D95", "#FFD85E", "#6A5CFF", "#FF6B4A", "#72F5FF"]
+// Chart Colors - Based on icon colors from Dashboard stat cards
+// Icon colors: Purple (#6366f1), Green (#10b981), Orange (#f59e0b), Cyan (#06b6d4)
+// Palette derived from these for a cohesive, less colorful look
 export const chartColors = {
-  // Primary chart colors
-  emails: '#72F5FF',        // Light Cyan/Sky Blue
-  linkedin: '#00E8C7',      // Teal/Cyan
-  calls: '#FF6B4A',         // Orange/Red
-  email: '#72F5FF',          // Light Cyan/Sky Blue (for pie chart)
-  coldCall: '#6A5CFF',       // Purple/Indigo
-  referral: '#FFD85E',      // Yellow
+  // Primary chart colors - based on icon colors
+  emails: '#6366f1',        // Purple/Indigo (from Growth icon)
+  linkedin: '#10b981',      // Green/Emerald (from Users icon)
+  calls: '#f59e0b',         // Orange/Amber (from Mail icon)
+  email: '#6366f1',         // Purple/Indigo (for pie chart)
+  coldCall: '#06b6d4',      // Cyan (from Target icon)
+  referral: '#8b5cf6',      // Purple variant
   
   // Alternative names for consistency
-  revenue: '#72F5FF',
-  leads: '#00E8C7',
+  revenue: '#6366f1',
+  leads: '#10b981',
   
   // Additional palette colors available
-  pink: '#FF2D95',           // Pink/Magenta
+  teal: '#14b8a6',          // Teal variant
 };
 
 // Semantic Colors - For UI elements, status indicators, etc.

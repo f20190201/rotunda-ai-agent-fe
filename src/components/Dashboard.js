@@ -47,15 +47,15 @@ const LiquidGlassTooltip = ({ active, payload, label }) => {
   
   return (
     <div className="liquid-glass-tooltip" style={{
-      background: 'linear-gradient(135deg, rgba(0, 232, 199, 0.6) 0%, rgba(114, 245, 255, 0.6) 50%, rgba(106, 92, 255, 0.6) 100%)',
+      background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.6) 0%, rgba(139, 92, 246, 0.6) 50%, rgba(6, 182, 212, 0.6) 100%)',
       backdropFilter: 'blur(20px) saturate(180%)',
       WebkitBackdropFilter: 'blur(20px) saturate(180%)',
       border: '1px solid rgba(255, 255, 255, 0.25)',
       borderRadius: '20px',
       padding: '1rem 1.25rem',
       boxShadow: `
-        0 8px 32px rgba(0, 232, 199, 0.3),
-        0 4px 16px rgba(114, 245, 255, 0.25),
+        0 8px 32px rgba(99, 102, 241, 0.3),
+        0 4px 16px rgba(139, 92, 246, 0.25),
         inset 0 1px 0 rgba(255, 255, 255, 0.3)
       `,
       position: 'relative',
@@ -1056,6 +1056,20 @@ const Dashboard = () => {
                 <Bar dataKey="calls" fill={chartColors.calls} radius={[4, 4, 0, 0]} name="Calls" />
               </BarChart>
             </ResponsiveContainer>
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'center', marginTop: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: chartColors.emails }} />
+              <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Emails</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: chartColors.linkedin }} />
+              <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>LinkedIn</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: chartColors.calls }} />
+              <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Calls</span>
+            </div>
           </div>
         </div>
 
