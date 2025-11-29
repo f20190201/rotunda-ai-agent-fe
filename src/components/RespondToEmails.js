@@ -233,14 +233,42 @@ const RespondToEmails = () => {
     );
   };
 
+  const getToneModalConfig = (tone) => {
+    const toneMap = {
+      '#Complaint': { 
+        title: 'Customer Complaint', 
+        icon: AlertCircle, 
+        iconColor: '#ef4444',
+        showAIResponse: true
+      },
+      '#Appreciation': { 
+        title: 'Customer Appreciation', 
+        icon: Heart, 
+        iconColor: '#10b981',
+        showAIResponse: true
+      },
+      '#Feedback': { 
+        title: 'Customer Feedback', 
+        icon: MessageSquare, 
+        iconColor: '#f59e0b',
+        showAIResponse: true
+      },
+      '#Generic': { 
+        title: 'Email Details', 
+        icon: Mail, 
+        iconColor: '#64748b',
+        showAIResponse: true
+      },
+    };
+    return toneMap[tone] || toneMap['#Generic'];
+  };
+
   const handleEmailClick = (email) => {
-    if (email.tone === '#Complaint') {
-      setSelectedEmail(email);
-      setShowComplaintModal(true);
-      setAiResponse(null);
-      setResponseError(null);
-      document.body.style.overflow = 'hidden';
-    }
+    setSelectedEmail(email);
+    setShowComplaintModal(true);
+    setAiResponse(null);
+    setResponseError(null);
+    document.body.style.overflow = 'hidden';
   };
 
   const handleGenerateResponse = async () => {
@@ -252,16 +280,31 @@ const RespondToEmails = () => {
 
     try {
       const emailContent = selectedEmail.preview || selectedEmail.body || '';
-      const response = await api.resolveEmailComplaint(
+      const customerInfo = {
+        email: selectedEmail.from,
+        subject: selectedEmail.subject,
+        tone: selectedEmail.tone
+      };
+
+      // Use generateHtmlEmail for all email types (more general endpoint)
+      const response = await api.generateHtmlEmail(
         emailContent,
-        {
-          email: selectedEmail.from,
-          subject: selectedEmail.subject
-        },
+        customerInfo,
         'rotunda-frontend-agent'
       );
 
-      setAiResponse(response.resolution);
+      // Format response to match expected structure
+      if (response.html_email) {
+        setAiResponse({
+          response: response.html_email,
+          plain_text: response.plain_text,
+          resolved: false,
+          metadata: response.metadata || {}
+        });
+      } else {
+        // Fallback: if response structure is different, use it as-is
+        setAiResponse(response);
+      }
     } catch (error) {
       console.error('Error generating response:', error);
       setResponseError(error.message);
@@ -293,30 +336,9 @@ const RespondToEmails = () => {
   const complaintCount = emails.filter(e => e.tone === '#Complaint').length;
   const totalEmails = emails.length;
   const complaintPercentage = totalEmails > 0 ? (complaintCount / totalEmails) * 100 : 0;
-  const showTenorGifHigh = complaintPercentage >= 75 && complaintPercentage <= 100;
-  const showTenorGifMedium = complaintPercentage >= 50 && complaintPercentage < 75;
-  const showTenorGifLow = complaintPercentage >= 25 && complaintPercentage < 50;
-  const showTenorGif = showTenorGifHigh || showTenorGifMedium || showTenorGifLow;
-
-  // Load Tenor embed script if needed
-  useEffect(() => {
-    if (showTenorGif) {
-      // Check if script already exists
-      let script = document.querySelector('script[src="https://tenor.com/embed.js"]');
-      
-      if (!script) {
-        script = document.createElement('script');
-        script.src = 'https://tenor.com/embed.js';
-        script.async = true;
-        script.type = 'text/javascript';
-        document.body.appendChild(script);
-      }
-
-      return () => {
-        // Don't remove script on cleanup to avoid reloading
-      };
-    }
-  }, [showTenorGif]);
+  const showHighGif = complaintPercentage >= 75 && complaintPercentage <= 100;
+  const showMediumGif = complaintPercentage >= 50 && complaintPercentage < 75;
+  const showLowGif = complaintPercentage >= 25 && complaintPercentage < 50;
 
   return (
     <div className="fade-in">
@@ -354,50 +376,48 @@ const RespondToEmails = () => {
         {/* GIF in top right */}
         {complaintCount > 0 && (
           <div style={{ position: 'relative', width: '150px', height: '150px' }}>
-            {showTenorGifHigh ? (
-              <div 
-              className="tenor-gif-embed" 
-              data-postid="21433767" 
-              data-share-method="host" 
-              data-aspect-ratio="1.66667" 
-              data-width="100%"
-              style={{ width: '150px', height: '150px', maxWidth: '150px', maxHeight: '150px' }}
-            >
-              <a href="https://tenor.com/view/jethalal-angry-tarak-mehta-ka-ooltah-chashmah-gif-21433767">
-                Jethalal Angry Tarak Mehta Ka Ooltah Chashmah GIF
-              </a>
-              from <a href="https://tenor.com/search/jethalal+angry-gifs">Jethalal Angry GIFs</a>
-            </div>
-            ) : showTenorGifMedium ? (
-
-                <div 
-                className="tenor-gif-embed" 
-                data-postid="19312105" 
-                data-share-method="host" 
-                data-aspect-ratio="1.09215" 
-                data-width="100%"
-                style={{ width: '150px', height: '150px', maxWidth: '150px', maxHeight: '150px' }}
-              >
-                <a href="https://tenor.com/view/jethalal-jethalal-champaklal-gada-tmkoc-tarak-mehta-jethalal-angry-gif-19312105">
-                  Jethalal Jethalal Champaklal Gada GIF
-                </a>
-                from <a href="https://tenor.com/search/jethalal-gifs">Jethalal GIFs</a>
-              </div>
-              
-            ) : showTenorGifLow ? (
-              <div 
-                className="tenor-gif-embed" 
-                data-postid="27709993" 
-                data-share-method="host" 
-                data-aspect-ratio="1" 
-                data-width="100%"
-                style={{ width: '150px', height: '150px', maxWidth: '150px', maxHeight: '150px' }}
-              >
-                <a href="https://tenor.com/view/angry-girl-gif-27709993">
-                  Angry Girl GIF
-                </a>
-                from <a href="https://tenor.com/search/angry-gifs">Angry GIFs</a>
-              </div>
+            {showHighGif ? (
+              <img 
+                src="/high.gif" 
+                alt="High complaint percentage GIF"
+                style={{
+                  width: '150px',
+                  height: '150px',
+                  maxWidth: '150px',
+                  maxHeight: '150px',
+                  borderRadius: '12px',
+                  objectFit: 'cover',
+                  border: '2px solid rgba(239, 68, 68, 0.3)'
+                }}
+              />
+            ) : showMediumGif ? (
+              <img 
+                src="/medium.gif" 
+                alt="Medium complaint percentage GIF"
+                style={{
+                  width: '150px',
+                  height: '150px',
+                  maxWidth: '150px',
+                  maxHeight: '150px',
+                  borderRadius: '12px',
+                  objectFit: 'cover',
+                  border: '2px solid rgba(239, 68, 68, 0.3)'
+                }}
+              />
+            ) : showLowGif ? (
+              <img 
+                src="/low.gif" 
+                alt="Low complaint percentage GIF"
+                style={{
+                  width: '150px',
+                  height: '150px',
+                  maxWidth: '150px',
+                  maxHeight: '150px',
+                  borderRadius: '12px',
+                  objectFit: 'cover',
+                  border: '2px solid rgba(239, 68, 68, 0.3)'
+                }}
+              />
             ) : (
               <>
                 <img 
@@ -512,18 +532,25 @@ const RespondToEmails = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredEmails.map((email) => (
+              {filteredEmails.map((email) => {
+                const toneColors = {
+                  '#Complaint': 'rgba(239, 68, 68, 0.05)',
+                  '#Appreciation': 'rgba(16, 185, 129, 0.05)',
+                  '#Feedback': 'rgba(245, 158, 11, 0.05)',
+                  '#Generic': 'rgba(100, 116, 139, 0.05)'
+                };
+                const hoverColor = toneColors[email.tone] || 'rgba(255, 255, 255, 0.03)';
+                
+                return (
               <tr 
                 key={email.id} 
                 style={{ 
-                  cursor: email.tone === '#Complaint' ? 'pointer' : 'default',
+                  cursor: 'pointer',
                   transition: 'all 0.2s ease'
                 }}
                 onClick={() => handleEmailClick(email)}
                 onMouseEnter={(e) => {
-                  if (email.tone === '#Complaint') {
-                    e.currentTarget.style.background = 'rgba(239, 68, 68, 0.05)';
-                  }
+                  e.currentTarget.style.background = hoverColor;
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = 'transparent';
@@ -540,7 +567,8 @@ const RespondToEmails = () => {
                   {email.timestamp}
                 </td>
               </tr>
-              ))}
+              );
+              })}
             </tbody>
           </table>
         )}
@@ -584,40 +612,48 @@ const RespondToEmails = () => {
             onWheel={handleModalScroll}
           >
             {/* Header */}
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'flex-start', 
-              marginBottom: '1.5rem',
-              paddingBottom: '1.5rem',
-              borderBottom: '1px solid rgba(255,255,255,0.1)'
-            }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-                  <AlertCircle size={24} style={{ color: '#ef4444' }} />
-                  <h2 style={{ fontSize: '1.5rem', fontWeight: '700' }}>Customer Complaint</h2>
+            {(() => {
+              const modalConfig = getToneModalConfig(selectedEmail.tone);
+              const Icon = modalConfig.icon;
+              
+              return (
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'flex-start', 
+                  marginBottom: '1.5rem',
+                  paddingBottom: '1.5rem',
+                  borderBottom: '1px solid rgba(255,255,255,0.1)'
+                }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                      <Icon size={24} style={{ color: modalConfig.iconColor }} />
+                      <h2 style={{ fontSize: '1.5rem', fontWeight: '700' }}>{modalConfig.title}</h2>
+                      {getToneBadge(selectedEmail.tone)}
+                    </div>
+                    <div style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '0.5rem' }}>
+                      <strong>From:</strong> {selectedEmail.from}
+                    </div>
+                    <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
+                      <strong>Subject:</strong> {selectedEmail.subject}
+                    </div>
+                  </div>
+                  <button 
+                    onClick={closeComplaintModal}
+                    style={{ 
+                      background: 'rgba(255,255,255,0.05)', 
+                      border: 'none', 
+                      borderRadius: '10px', 
+                      padding: '0.5rem',
+                      cursor: 'pointer',
+                      color: '#94a3b8'
+                    }}
+                  >
+                    <X size={20} />
+                  </button>
                 </div>
-                <div style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '0.5rem' }}>
-                  <strong>From:</strong> {selectedEmail.from}
-                </div>
-                <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
-                  <strong>Subject:</strong> {selectedEmail.subject}
-                </div>
-              </div>
-              <button 
-                onClick={closeComplaintModal}
-                style={{ 
-                  background: 'rgba(255,255,255,0.05)', 
-                  border: 'none', 
-                  borderRadius: '10px', 
-                  padding: '0.5rem',
-                  cursor: 'pointer',
-                  color: '#94a3b8'
-                }}
-              >
-                <X size={20} />
-              </button>
-            </div>
+              );
+            })()}
 
             {/* Email Content */}
             <div style={{ 
@@ -631,41 +667,48 @@ const RespondToEmails = () => {
               </div>
             </div>
 
-            {/* AI Response Section */}
-            {!aiResponse ? (
-              <div style={{ textAlign: 'center', padding: '2rem 0' }}>
-                <button 
-                  className="btn btn-primary" 
-                  onClick={handleGenerateResponse}
-                  disabled={loadingResponse}
-                  style={{ width: '100%', justifyContent: 'center' }}
-                >
-                  {loadingResponse ? (
-                    <>
-                      <Loader2 size={18} className="spin" />
-                      Generating AI Response...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles size={18} />
-                      Respond using AI
-                    </>
+            {/* AI Response Section - Only show for complaints */}
+            {(() => {
+              const modalConfig = getToneModalConfig(selectedEmail.tone);
+              
+              if (!modalConfig.showAIResponse) {
+                return null; // Don't show AI response section for non-complaint emails
+              }
+              
+              return !aiResponse ? (
+                <div style={{ textAlign: 'center', padding: '2rem 0' }}>
+                  <button 
+                    className="btn btn-primary" 
+                    onClick={handleGenerateResponse}
+                    disabled={loadingResponse}
+                    style={{ width: '100%', justifyContent: 'center' }}
+                  >
+                    {loadingResponse ? (
+                      <>
+                        <Loader2 size={18} className="spin" />
+                        Generating AI Response...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles size={18} />
+                        Respond using AI
+                      </>
+                    )}
+                  </button>
+                  {responseError && (
+                    <div style={{ 
+                      marginTop: '1rem', 
+                      padding: '1rem', 
+                      background: 'rgba(239, 68, 68, 0.1)', 
+                      borderRadius: '12px',
+                      color: '#ef4444',
+                      fontSize: '0.875rem'
+                    }}>
+                      ⚠️ {responseError}
+                    </div>
                   )}
-                </button>
-                {responseError && (
-                  <div style={{ 
-                    marginTop: '1rem', 
-                    padding: '1rem', 
-                    background: 'rgba(239, 68, 68, 0.1)', 
-                    borderRadius: '12px',
-                    color: '#ef4444',
-                    fontSize: '0.875rem'
-                  }}>
-                    ⚠️ {responseError}
-                  </div>
-                )}
-              </div>
-            ) : (
+                </div>
+              ) : (
               <div>
                 <div style={{ 
                   display: 'flex', 
@@ -698,11 +741,10 @@ const RespondToEmails = () => {
                     fontSize: '0.9rem', 
                     color: '#c4c9d4', 
                     lineHeight: '1.8',
-                    whiteSpace: 'pre-wrap',
                     fontFamily: 'Outfit, sans-serif'
-                  }}>
-                    {aiResponse.response}
-                  </div>
+                  }}
+                  dangerouslySetInnerHTML={{ __html: aiResponse.response || aiResponse.html_email || '' }}
+                  />
                 </div>
 
                 {aiResponse.resolved && (
@@ -717,7 +759,7 @@ const RespondToEmails = () => {
                   }}>
                     <Check size={20} style={{ color: '#10b981' }} />
                     <span style={{ color: '#10b981', fontWeight: '500' }}>
-                      Complaint marked as resolved
+                      {selectedEmail.tone === '#Complaint' ? 'Complaint marked as resolved' : 'Response generated successfully'}
                     </span>
                   </div>
                 )}
@@ -742,7 +784,8 @@ const RespondToEmails = () => {
                   </button>
                 </div>
               </div>
-            )}
+              );
+            })()}
           </div>
         </>,
         document.body
