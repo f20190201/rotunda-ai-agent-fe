@@ -1,0 +1,45 @@
+name: Deploy to DigitalOcean (prod)
+
+on:
+  push:
+    branches:
+      - prod
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Configure SSH
+        env:
+          DO_SSH_KEY: ${{ secrets.DO_SSH_KEY }}
+          DO_HOST: ${{ secrets.DO_HOST }}
+        run: |
+          install -m 700 -d ~/.ssh
+          install -m 600 /dev/null ~/.ssh/id_rsa
+          echo "$DO_SSH_KEY" > ~/.ssh/id_rsa
+          ssh-keyscan -H "$DO_HOST" >> ~/.ssh/known_hosts
+
+      - name: Deploy to droplet
+        env:
+          DO_HOST: ${{ secrets.DO_HOST }}
+          DO_USER: ${{ secrets.DO_USER }}
+          DEPLOY_PATH: ${{ secrets.DO_DEPLOY_PATH }}
+        run: |
+          : "${DEPLOY_PATH:?Set DO_DEPLOY_PATH secret to target directory on the droplet}"
+          ssh "${DO_USER}@${DO_HOST}" "mkdir -p '${DEPLOY_PATH}'"
+          rsync -az --delete build/ "${DO_USER}@${DO_HOST}:${DEPLOY_PATH}/"
