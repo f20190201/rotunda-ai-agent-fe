@@ -12,7 +12,6 @@ import {
   Mail,
   Loader2,
   AlertCircle,
-  CheckCircle,
   RefreshCw
 } from 'lucide-react';
 import api from '../services/api';
