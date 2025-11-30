@@ -122,6 +122,7 @@ const RespondToEmails = () => {
   const [responseError, setResponseError] = useState(null);
   const [copied, setCopied] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
+  const [complaintPercentageOverride, setComplaintPercentageOverride] = useState(null);
   const [emailConfig, setEmailConfig] = useState({
     email_address: '',
     password: '',
@@ -198,10 +199,67 @@ const RespondToEmails = () => {
     fetchEmails();
   };
 
-  const filteredEmails = emails.filter(email => {
+  // Calculate complaint percentage and adjust email list if override is active
+  const complaintCount = emails.filter(e => e.tone === '#Complaint').length;
+  const totalEmails = emails.length;
+  const actualComplaintPercentage = totalEmails > 0 ? (complaintCount / totalEmails) * 100 : 0;
+  
+  // Adjust email list based on override percentage
+  const getAdjustedEmails = () => {
+    if (complaintPercentageOverride === null) {
+      return emails; // Return original emails when auto
+    }
+
+    const complaintEmails = emails.filter(e => e.tone === '#Complaint');
+    const nonComplaintEmails = emails.filter(e => e.tone !== '#Complaint');
+    
+    // Calculate how many complaint emails we need to show based on override percentage
+    const targetComplaintCount = Math.round((complaintPercentageOverride / 100) * emails.length);
+    const targetNonComplaintCount = emails.length - targetComplaintCount;
+    
+    // Take required number of each type
+    const selectedComplaints = complaintEmails.slice(0, Math.min(targetComplaintCount, complaintEmails.length));
+    const selectedNonComplaints = nonComplaintEmails.slice(0, Math.min(targetNonComplaintCount, nonComplaintEmails.length));
+    
+    // If we need more complaints than available, duplicate some
+    let adjustedComplaints = [...selectedComplaints];
+    while (adjustedComplaints.length < targetComplaintCount && complaintEmails.length > 0) {
+      const needed = targetComplaintCount - adjustedComplaints.length;
+      const toAdd = complaintEmails.slice(0, Math.min(needed, complaintEmails.length));
+      adjustedComplaints.push(...toAdd);
+    }
+    
+    // If we need more non-complaints than available, duplicate some
+    let adjustedNonComplaints = [...selectedNonComplaints];
+    while (adjustedNonComplaints.length < targetNonComplaintCount && nonComplaintEmails.length > 0) {
+      const needed = targetNonComplaintCount - adjustedNonComplaints.length;
+      const toAdd = nonComplaintEmails.slice(0, Math.min(needed, nonComplaintEmails.length));
+      adjustedNonComplaints.push(...toAdd);
+    }
+    
+    // Combine and limit to original count
+    const combined = [
+      ...adjustedComplaints.slice(0, targetComplaintCount), 
+      ...adjustedNonComplaints.slice(0, targetNonComplaintCount)
+    ];
+    return combined.slice(0, emails.length); // Keep same total count
+  };
+
+  const adjustedEmails = getAdjustedEmails();
+  
+  // Use override if set, otherwise use actual percentage
+  const complaintPercentage = complaintPercentageOverride !== null ? complaintPercentageOverride : actualComplaintPercentage;
+  const showHighGif = complaintPercentage >= 75 && complaintPercentage <= 100;
+  const showMediumGif = complaintPercentage >= 50 && complaintPercentage < 75;
+  const showLowGif = complaintPercentage >= 25 && complaintPercentage < 50;
+
+  // Use adjusted emails when override is active, otherwise use original emails
+  const emailsToFilter = complaintPercentageOverride !== null ? adjustedEmails : emails;
+  
+  const filteredEmails = emailsToFilter.filter(email => {
     const matchesSearch = email.from.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           email.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          email.preview.toLowerCase().includes(searchQuery.toLowerCase());
+                          (email.snippet && email.snippet.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesTone = toneFilter === 'all' || email.tone === toneFilter;
     return matchesSearch && matchesTone;
   });
@@ -333,13 +391,6 @@ const RespondToEmails = () => {
     e.stopPropagation();
   };
 
-  const complaintCount = emails.filter(e => e.tone === '#Complaint').length;
-  const totalEmails = emails.length;
-  const complaintPercentage = totalEmails > 0 ? (complaintCount / totalEmails) * 100 : 0;
-  const showHighGif = complaintPercentage >= 75 && complaintPercentage <= 100;
-  const showMediumGif = complaintPercentage >= 50 && complaintPercentage < 75;
-  const showLowGif = complaintPercentage >= 25 && complaintPercentage < 50;
-
   return (
     <div className="fade-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
@@ -347,7 +398,34 @@ const RespondToEmails = () => {
           <div className="page-title">Respond to Emails</div>
           <div className="page-subtitle">Manage and respond to incoming customer emails</div>
         </div>
-        <div style={{ display: 'flex', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          {/* Complaint Percentage Override Selector */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            
+            <select
+              value={complaintPercentageOverride === null ? 'auto' : complaintPercentageOverride}
+              onChange={(e) => {
+                const value = e.target.value;
+                setComplaintPercentageOverride(value === 'auto' ? null : parseFloat(value));
+              }}
+              style={{
+                padding: '0.5rem 0.75rem',
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: '8px',
+                color: '#f8fafc',
+                fontSize: '0.875rem',
+                cursor: 'pointer',
+                minWidth: '150px'
+              }}
+            >
+              <option value="auto">Auto ({actualComplaintPercentage.toFixed(1)}%)</option>
+              <option value="10">0-25% (Happy)</option>
+              <option value="35">25-50% (Low)</option>
+              <option value="60">50-75% (Medium)</option>
+              <option value="85">75-100% (High)</option>
+            </select>
+          </div>
           <button 
             className="btn btn-secondary" 
             onClick={() => setShowConfigModal(true)}
@@ -374,7 +452,7 @@ const RespondToEmails = () => {
           </button>
         </div>
         {/* GIF in top right */}
-        {complaintCount > 0 && (
+        {(complaintCount > 0 || complaintPercentageOverride !== null) && (
           <div style={{ position: 'relative', width: '150px', height: '150px' }}>
             {showHighGif ? (
               <img 
