@@ -81,6 +81,8 @@ npm run build
 
 This creates an optimized production build in the `build/` folder.
 
+### The deployed version of this code can be accessed at [http://64.227.128.101:3005/](http://64.227.128.101:3005/)
+
 ## 🔧 Configuration
 
 ### Backend API
@@ -89,13 +91,6 @@ The application connects to a backend API. Configure the API URL:
 
 - **Development**: Uses proxy from `package.json` (default: `http://64.227.128.101:8000/`)
 - **Production**: Set `REACT_APP_API_URL` environment variable
-
-### Mock Data
-
-Some features use mock data for development. To switch between mock and real API:
-
-- Edit `USE_MOCK_API` flag in `src/App.js` and `src/components/RespondToEmails.js`
-- Set to `true` for mock data, `false` for real API
 
 ## 📁 Project Structure
 
@@ -116,9 +111,6 @@ team-rotunda/
 │   │   └── api.js         # API service layer
 │   ├── constants/
 │   │   └── colors.js      # Centralized color palette
-│   ├── mocks/             # Mock data for development
-│   │   ├── emailMocks.js
-│   │   └── alertMocks.js
 │   ├── App.js             # Main app component
 │   └── App.css            # Global styles
 └── package.json
