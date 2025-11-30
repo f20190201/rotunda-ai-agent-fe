@@ -162,19 +162,11 @@ The application integrates with a FastAPI backend for:
 
 See `src/services/api.js` for all available API endpoints.
 
-## 🧪 Testing
-
-Run tests:
-
-```bash
-npm test
-```
 
 ## 📝 Available Scripts
 
 - `npm start` - Start development server
 - `npm run build` - Create production build
-- `npm test` - Run tests
 - `npm run eject` - Eject from Create React App (irreversible)
 
 ## 🌐 Browser Support
@@ -184,15 +176,6 @@ npm test
 - Safari (latest)
 - Edge (latest)
 
-## 📄 License
 
-This project is private and proprietary.
 
-## 👥 Contributors
-
-- Subham Patel (subham@rotunda.ai)
-
----
-
-**Built with ❤️ for efficient sales operations**
 
