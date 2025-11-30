@@ -67,15 +67,11 @@ export async function chat(message, options = {}) {
     calUrl = null,
   } = options;
 
-  return apiCall('/chat', {
+  return apiCall('/chatagent', {
     method: 'POST',
     body: JSON.stringify({
       message,
-      agentId: 'chatagent',
-      StripeEnabled: stripeEnabled,
-      SlackEnabled: slackEnabled,
-      CalEnabled: calEnabled,
-      CalUrl: calUrl,
+      agentId: 'string',
     }),
   });
 }
